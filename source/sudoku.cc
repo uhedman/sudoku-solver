@@ -29,18 +29,20 @@ Sudoku::Solve() {
   int elems = 0;
 
   // Analizamos cada casilla
-  int pos = 0;
+  int last = 0;
   for (int i = 0; i < 9; i++) 
     for (int j = 0; j < 9; j++) 
       if (matrix[i][j] == 0) {
         casillasVacias[elems] = std::make_pair(i, j);
         for (int k = 1; k < 10; k++)
           if (Check(i, j, k)) {
-            posibles[elems][++pos] = k;
+            posibles[elems][last] = k;
+            last = k;
           }
 
-        posibles[elems++][0] = pos;
-        pos = 0;
+        posibles[elems][last] = 10;
+        elems++;
+        last = 0;
       }
             
   if (elems == 0) {
@@ -48,7 +50,7 @@ Sudoku::Solve() {
     return true;
   }
 
-  int idx = 0, i, j, start, l;
+  int idx = 0, i, j, start;
   bool warm_start = false;
   while (idx < elems && idx >= 0) {
     i = casillasVacias[idx].first;
@@ -63,10 +65,9 @@ Sudoku::Solve() {
     else {
       start = 0;
     }
-    for (int k = 0; k < posibles[idx][0]; k++) {
-      l = posibles[idx][k+1];
-      if (l > start && Check(i, j, l)) {
-        matrix[i][j] = l;
+    for (int k = posibles[idx][start]; k < 10; k = posibles[idx][k]) {
+      if (Check(i, j, k)) {
+        matrix[i][j] = k;
         idx++;
         break;
       }
