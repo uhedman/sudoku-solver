@@ -24,14 +24,23 @@ Sudoku::Print() {
 bool
 Sudoku::Solve() {
   // Array de casillas vacias
-  std::array<std::pair<int, int>, 81> casillasVacias;
+  std::array<std::pair<int, int>, 64> casillasVacias;
+  std::array<std::array<int, 10>, 64> posibles;
   int elems = 0;
 
   // Analizamos cada casilla
+  int pos = 0;
   for (int i = 0; i < 9; i++) 
     for (int j = 0; j < 9; j++) 
       if (matrix[i][j] == 0) {
-        casillasVacias[elems++] = std::make_pair(i, j);
+        casillasVacias[elems] = std::make_pair(i, j);
+        for (int k = 1; k < 10; k++)
+          if (Check(i, j, k)) {
+            posibles[elems][++pos] = k;
+          }
+
+        posibles[elems++][0] = pos;
+        pos = 0;
       }
             
   if (elems == 0) {
@@ -39,7 +48,7 @@ Sudoku::Solve() {
     return true;
   }
 
-  int idx = 0, i, j, start;
+  int idx = 0, i, j, start, l;
   bool warm_start = false;
   while (idx < elems && idx >= 0) {
     i = casillasVacias[idx].first;
@@ -47,16 +56,17 @@ Sudoku::Solve() {
 
     // warm_start significa continuar desde el valor guardado
     if (warm_start) {
-      start = matrix[i][j] + 1;
+      start = matrix[i][j];
       matrix[i][j] = 0;
       warm_start = false;
     }
     else {
       start = 0;
     }
-    for (int k = start; k < 10; k++) {
-      if (Check(i, j, k)) {
-        matrix[i][j] = k;
+    for (int k = 0; k < posibles[idx][0]; k++) {
+      l = posibles[idx][k+1];
+      if (l > start && Check(i, j, l)) {
+        matrix[i][j] = l;
         idx++;
         break;
       }
